@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using HtmlAgilityPack;
@@ -10,7 +11,7 @@ namespace HTMLScraper
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            string link2chapter1 = "https://www.royalroad.com/fiction/41033/kairos-a-greek-myth-litrpg/chapter/642057/1-the-legend-of-kairos";
+            string link2chapter1 = "https://www.royalroad.com/fiction/25082/blue-core/chapter/649554/book-3-chapter-1a-day-204-flight-alpha-tlulipechua";
             IndexFetcher ifetcher = new IndexFetcher(link2chapter1);
             ifetcher.getAllChapters();
             var chapters = ifetcher.getChapterList();
@@ -20,15 +21,23 @@ namespace HTMLScraper
                 var web = new HtmlWeb();
                 var doc = web.Load(chapter);
                 var nodes = doc.DocumentNode.SelectNodes($"//div[contains(@class,'chapter-inner chapter-content')]");
-                string chapterbody  = nodes[0].InnerHtml;
+                string chapterbody  = nodes[0].OuterHtml;
 
-                ifetcher.Chapters.Add(new IndexFetcher.Chapter(chaptername, chapterbody));
+                var nodes_title = doc.DocumentNode.SelectNodes($"//h1[contains(@style,'margin-top: 10px')]");
+                string chaptertitle2  = nodes_title[0].OuterHtml;
+
+                ifetcher.Chapters.Add(new IndexFetcher.Chapter(chaptertitle2, chapterbody));
             }
 
             foreach (var chapter in ifetcher.Chapters)
             {
                 Console.WriteLine(chapter.ChapterTitle);
                 Console.WriteLine(chapter.ChapterBody);
+                String heading = $"<h1>{chapter.ChapterTitle.Replace("-", " ")} </h1>";
+
+                using StreamWriter file = new("Blue Core 3.html", append: true);
+                file.WriteLine(heading);
+                file.WriteLine(chapter.ChapterBody);
             }
         }
     }
